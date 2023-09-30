@@ -1,0 +1,265 @@
+{
+    "Map/SizeTest": {
+        "height": 4300,
+        "width": 2
+    },
+    "activeFile": "uncertain_environments_benchmarking/EscapeLocalMinima_16x16A.tmx",
+    "expandedProjectPaths": [
+        "uncertain_environments_benchmarking",
+        ".",
+        "large",
+        "square_rect_based"
+    ],
+    "fileStates": {
+        "AmbiguitySquare.tmx": {
+            "scale": 3.100694444444444,
+            "selectedLayer": 0,
+            "viewCenter": {
+                "x": 144.32250839865623,
+                "y": 144.32250839865623
+            }
+        },
+        "BaseTileset.tsx": {
+            "scaleInDock": 1,
+            "scaleInEditor": 1
+        },
+        "LongWorld.tmx": {
+            "scale": 1.1169921875,
+            "selectedLayer": 0,
+            "viewCenter": {
+                "x": 384.5147753103689,
+                "y": 48.791746808882635
+            }
+        },
+        "Maze.tmx": {
+            "scale": 2.233984375,
+            "selectedLayer": 0,
+            "viewCenter": {
+                "x": 192.25738765518446,
+                "y": 192.70501835985317
+            }
+        },
+        "MiniAmbiguitySquare.tmx": {
+            "scale": 5.58125,
+            "selectedLayer": 0,
+            "viewCenter": {
+                "x": 80,
+                "y": 80
+            }
+        },
+        "ObservabilityTileset.tsx": {
+            "scaleInDock": 1,
+            "scaleInEditor": 1
+        },
+        "OpenWorld.tmx": {
+            "scale": 2.233984375,
+            "selectedLayer": 0,
+            "viewCenter": {
+                "x": 192.25738765518446,
+                "y": 192.70501835985317
+            }
+        },
+        "TestMap.tmx": {
+            "scale": 0.89,
+            "selectedLayer": 0,
+            "viewCenter": {
+                "x": 480.8988764044944,
+                "y": 320.7865168539326
+            }
+        },
+        "TinyMap.tmx": {
+            "scale": 2.27,
+            "selectedLayer": 0,
+            "viewCenter": {
+                "x": 128.41409691629954,
+                "y": 128.41409691629954
+            }
+        },
+        "TinyMap_visualizable.tmx": {
+            "scale": 2.533,
+            "selectedLayer": 0,
+            "viewCenter": {
+                "x": 156.53375444137384,
+                "y": 162.4555862613502
+            }
+        },
+        "TwoSquares.tmx": {
+            "scale": 2.1994,
+            "selectedLayer": 0,
+            "viewCenter": {
+                "x": 144.35755205965262,
+                "y": 144.35755205965265
+            }
+        },
+        "XWorld.tmx": {
+            "scale": 2.1326,
+            "selectedLayer": 0,
+            "viewCenter": {
+                "x": 128.71612116665105,
+                "y": 128.24720997843008
+            }
+        },
+        "large/LargeAmbiguity.tmx": {
+            "scale": 0.2790625,
+            "selectedLayer": 0,
+            "viewCenter": {
+                "x": 1600.0000000000002,
+                "y": 1600
+            }
+        },
+        "large/LargeGraph.tmx": {
+            "scale": 0.2790625,
+            "selectedLayer": 0,
+            "viewCenter": {
+                "x": 1603.5834266517359,
+                "y": 1600
+            }
+        },
+        "large/LargeGraph2.tmx": {
+            "scale": 0.2790625,
+            "selectedLayer": 0,
+            "viewCenter": {
+                "x": 1603.5834266517359,
+                "y": 1600
+            }
+        },
+        "large/MediumAmbiguity.tmx": {
+            "scale": 0.2108,
+            "selectedLayer": 0,
+            "viewCenter": {
+                "x": 476.755218216319,
+                "y": 476.75521821631855
+            }
+        },
+        "large/MediumAmbiguity_empty.tmx": {
+            "scale": 0.8720703125,
+            "selectedLayer": 0,
+            "viewCenter": {
+                "x": 512,
+                "y": 512.0000000000001
+            }
+        },
+        "square_rect_based/16x16A.tmx": {
+            "scale": 1.744140625,
+            "selectedLayer": 0,
+            "viewCenter": {
+                "x": 256,
+                "y": 256.00000000000006
+            }
+        },
+        "square_rect_based/16x16B.tmx": {
+            "scale": 1.744140625,
+            "selectedLayer": 0,
+            "viewCenter": {
+                "x": 256,
+                "y": 256.00000000000006
+            }
+        },
+        "square_rect_based/16x16C.tmx": {
+            "scale": 1.744140625,
+            "selectedLayer": 0,
+            "viewCenter": {
+                "x": 256,
+                "y": 256.00000000000006
+            }
+        },
+        "square_rect_based/16x16D.tmx": {
+            "scale": 1.744140625,
+            "selectedLayer": 0,
+            "viewCenter": {
+                "x": 256,
+                "y": 256.00000000000006
+            }
+        },
+        "square_rect_based/16x16E.tmx": {
+            "scale": 1.744140625,
+            "selectedLayer": 0,
+            "viewCenter": {
+                "x": 256,
+                "y": 256.00000000000006
+            }
+        },
+        "square_rect_based/8x8A.tmx": {
+            "scale": 3.48828125,
+            "selectedLayer": 0,
+            "viewCenter": {
+                "x": 128,
+                "y": 128.00000000000003
+            }
+        },
+        "square_rect_based/8x8B.tmx": {
+            "scale": 3.48828125,
+            "selectedLayer": 0,
+            "viewCenter": {
+                "x": 128,
+                "y": 128.00000000000003
+            }
+        },
+        "square_rect_based/8x8C.tmx": {
+            "scale": 3.48828125,
+            "selectedLayer": 0,
+            "viewCenter": {
+                "x": 128,
+                "y": 128.00000000000003
+            }
+        },
+        "square_rect_based/8x8D.tmx": {
+            "scale": 3.48828125,
+            "selectedLayer": 0,
+            "viewCenter": {
+                "x": 128,
+                "y": 128.00000000000003
+            }
+        },
+        "square_rect_based/8x8E.tmx": {
+            "scale": 3.48828125,
+            "selectedLayer": 0,
+            "viewCenter": {
+                "x": 128,
+                "y": 126.27995520716685
+            }
+        },
+        "uncertain_environments_benchmarking/EscapeLocalMinima_16x16A.tmx": {
+            "scale": 1.744140625,
+            "selectedLayer": 0,
+            "viewCenter": {
+                "x": 256,
+                "y": 256.00000000000006
+            }
+        }
+    },
+    "last.imagePath": "/Users/michaelfatemi/Code/2023/ARLSadler/robotic-deception/Pursuit",
+    "map.height": 16,
+    "map.lastUsedFormat": "tmx",
+    "map.width": 16,
+    "openFiles": [
+        "square_rect_based/8x8E.tmx",
+        "square_rect_based/16x16A.tmx",
+        "square_rect_based/16x16B.tmx",
+        "square_rect_based/16x16C.tmx",
+        "square_rect_based/16x16D.tmx",
+        "square_rect_based/16x16E.tmx",
+        "square_rect_based/8x8A.tmx",
+        "square_rect_based/8x8B.tmx",
+        "large/MediumAmbiguity.tmx",
+        "large/LargeAmbiguity.tmx",
+        "large/MediumAmbiguity_empty.tmx",
+        "uncertain_environments_benchmarking/EscapeLocalMinima_16x16A.tmx"
+    ],
+    "project": "GridTest.tiled-project",
+    "recentFiles": [
+        "square_rect_based/8x8E.tmx",
+        "square_rect_based/16x16A.tmx",
+        "square_rect_based/16x16B.tmx",
+        "square_rect_based/16x16C.tmx",
+        "square_rect_based/16x16D.tmx",
+        "square_rect_based/16x16E.tmx",
+        "square_rect_based/8x8A.tmx",
+        "square_rect_based/8x8B.tmx",
+        "large/MediumAmbiguity.tmx",
+        "large/LargeAmbiguity.tmx",
+        "large/MediumAmbiguity_empty.tmx",
+        "uncertain_environments_benchmarking/EscapeLocalMinima_16x16A.tmx"
+    ],
+    "tileset.lastUsedFormat": "tsx"
+}
