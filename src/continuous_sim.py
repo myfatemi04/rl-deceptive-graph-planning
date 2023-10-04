@@ -48,6 +48,7 @@ def get_path(
     decoy,
     decoy2,
     decoy2_switch_time,
+    greedy,
     block_paths_with_velocity=False
 ):
     graph = torch_geometric.data.Data(edge_index=torch.tensor(edge_list.T.astype(np.int64)))
@@ -64,8 +65,16 @@ def get_path(
     switched = False
     switch_location = [0, 0]
 
+    max_iterations = 1000
+
+    i = 0
+
     while distance(current_loc, goal) > min_dist:
-        if curr_path_length > decoy2_switch_time and not switched:
+        i += 1
+        if i > max_iterations:
+            print("!!! max iterations reached !!!")
+            break
+        if decoy2_switch_time is not None and curr_path_length > decoy2_switch_time and not switched:
             decoy = decoy2
             switched = True
             switch_location = current_loc
@@ -87,7 +96,10 @@ def get_path(
             for n in unallowable:
                 # if all are -np.inf, then we will still be able to pick one
                 result.logits[result.neighbor_nodes==n] = -np.inf
-        next_node = result.neighbor_nodes[torch.argmax(result.logits)]
+        if greedy:
+            next_node = result.neighbor_nodes[torch.argmax(result.logits)]
+        else:
+            next_node = result.neighbor_nodes[torch.nn.functional.gumbel_softmax(result.logits * 2, tau=1, hard=True).argmax()]
         path.append(next_node)
         current_node = next_node
         current_loc = node_locations[current_node]
@@ -109,10 +121,13 @@ def make_base_plot(trees, start, goal, decoy, decoy2, vor, plot_voronoi=True):
     plt.scatter([start[0]], [start[1]], c='r', label='Start')
     plt.scatter([goal[0]], [goal[1]], c='g', label='Goal')
     plt.scatter([decoy[0]], [decoy[1]], c='b', label='Decoy')
-    plt.scatter([decoy2[0]], [decoy2[1]], c='orange', label='Decoy 2')
+    if decoy2 is not None:
+        plt.scatter([decoy2[0]], [decoy2[1]], c='orange', label='Decoy 2')
 
 def spline(x,y,steps_per_edge=20):
-    tck, u     = interpolate.splprep( [x,y] ,s = 0 )
+    # linearly interpolate points on path
+
+    tck, u     = interpolate.splprep( [x, y] ,s = 1 )
     xnew,ynew = interpolate.splev( np.linspace( 0, 1, steps_per_edge * (len(x) - 1) ), tck,der = 0)
     return xnew, ynew
 
@@ -135,11 +150,11 @@ def render_animation(
     decoy_node_switch_time,
     node_locations,
     edge_list,
-    deception_type,
     extra_time,
     visibility_radius,
     trees,
     vor,
+    greedy,
 ):
     size = (1200, 1200)
     writer = cv2.VideoWriter(f'animation.mp4', cv2.VideoWriter_fourcc(*'mp4v'), 10, size)
@@ -156,7 +171,8 @@ def render_animation(
         goal_node,
         decoy_node,
         decoy_node_2,
-        decoy2_switch_time=decoy_node_switch_time
+        decoy_node_switch_time,
+        greedy,
     )
 
     start = node_locations[start_node]
@@ -181,6 +197,8 @@ def render_animation(
         label(start[0]-2.5, start[1], 'Start',fontsize=10)
         label(goal_node[0]-2.5, goal_node[1], 'Goal',fontsize=10)
         label(decoy_node[0]+1, decoy_node[1], 'Decoy',fontsize=10)
+        if decoy_node_2 is not None:
+            label(decoy_node_2[0]+1, decoy_node_2[1], 'Decoy 2', fontsize=10)
         plt.axis('off')
         no_margins()
         # savefig to buffer
@@ -208,6 +226,7 @@ def main():
     voronoi = spatial.Voronoi(trees)
 
     np.random.seed(seed)
+    torch.manual_seed(seed)
     start_node, goal_node, decoy_node, decoy_node2 = np.random.choice(len(voronoi.vertices), 4, replace=False)
     start = voronoi.vertices[start_node]
     goal = voronoi.vertices[goal_node]
@@ -223,7 +242,7 @@ def main():
         decoy = voronoi.vertices[decoy_node]
         decoy2 = voronoi.vertices[decoy_node2]
 
-    decoy_node, goal_node, decoy_node2 = decoy_node, decoy_node2, goal_node
+    # decoy_node, goal_node, decoy_node2 = decoy_node, decoy_node2, goal_node
     goal = voronoi.vertices[goal_node]
     decoy = voronoi.vertices[decoy_node]
     decoy2 = voronoi.vertices[decoy_node2]
@@ -241,18 +260,15 @@ def main():
 
     if deception_type == 'exaggeration':
         print("Running in mode: Exaggeration")
-        model = checkpoints.load_checkpoint(checkpoints.models[1])
+        model = checkpoints.load_checkpoint(checkpoints.models[-3])
     else:
         print("Running in mode: Ambiguity")
-        model = checkpoints.load_checkpoint(checkpoints.models[0])
+        model = checkpoints.load_checkpoint(checkpoints.models[-1])
 
     plt.rcParams['figure.figsize'] = [5, 5]
     plt.rcParams['axes.titlesize'] = 16
     plt.rcParams['figure.dpi'] = 200
     plt.title(f"{deception_type.capitalize()}: Permitted deception")
-    min_ = 10
-    max_ = 50
-    samples = 6
     texts = []
     colors = ['red', 'green', 'blue', 'orange', 'pink', 'gold'] * 3
     labelcolors = ['white', 'white', 'white', 'black', 'black', 'black'] * 3
@@ -260,39 +276,53 @@ def main():
     labelalpha = 0.75
     # plt.show()
 
+    n_trials = 5
+    # greedy = False
+    if n_trials == 1:
+        greedy = True
+    else:
+        greedy = False
+
     if mode == 'compare-decoy-switch-time':
         make_base_plot(trees, start, goal, decoy, decoy2, voronoi, plot_voronoi=False)
+        # min_ = 10
+        # max_ = 50
+        # samples = 6
 
         for i, decoy2_switch_time in enumerate([1, 4, 9, 15, 21]):
-            remaining_time = 30
-            path, switch_location = get_path(
-                model,
-                start_node,
-                node_locations,
-                edge_list,
-                remaining_time,
-                2,
-                goal,
-                decoy,
-                decoy2,
-                decoy2_switch_time=decoy2_switch_time
-            )
+            for trial_num in range(n_trials):
+                remaining_time = 30
+                visibility_radius = 2
+                path, switch_location = get_path(
+                    model,
+                    start_node,
+                    node_locations,
+                    edge_list,
+                    remaining_time,
+                    visibility_radius,
+                    goal,
+                    decoy,
+                    decoy2,
+                    decoy2_switch_time,
+                    greedy,
+                )
 
-            # plot path
-            x = [node_locations[j][0] for j in path]
-            y = [node_locations[i][1] for i in path]
-            # add label next to switch location
-            t = plt.text(switch_location[0], switch_location[1], f'{round(decoy2_switch_time)}', fontsize=fontsize, color=labelcolors[i])
-            t.set_bbox(dict(facecolor=colors[i], alpha=labelalpha, edgecolor=colors[i]))
-            texts.append(t)
+                # plot path
+                x = [node_locations[j][0] for j in path]
+                y = [node_locations[i][1] for i in path]
+                # add label next to switch location
+                if trial_num == 0:
+                    t = plt.text(switch_location[0], switch_location[1], f'{round(decoy2_switch_time)}', fontsize=fontsize, color=labelcolors[i])
+                    t.set_bbox(dict(facecolor=colors[i], alpha=labelalpha, edgecolor=colors[i]))
+                    texts.append(t)
+                    plt.scatter([switch_location[0]], [switch_location[1]], c='black', marker='h', s=20, zorder=2)
             
-            plt.plot(*spline(x,y),c=colors[i], zorder=1)
-            plt.scatter([switch_location[0]], [switch_location[1]], c='black', marker='h', s=20, zorder=2)
+                plt.plot(*spline(x,y), c=colors[i], zorder=1, alpha=1, linewidth=2)
 
-        t1 = label(start[0]-2, start[1], 'Start', fontsize=10)
+        t1 = label(start[0] - 2, start[1], 'Start', fontsize=10)
         t2 = label(goal[0] - 0.5, goal[1] - 1.5, 'Goal', fontsize=10)
-        t3 = label(decoy[0]+2, decoy[1]+0.5, 'Initial decoy', fontsize=10)
-        t4 = label(decoy2[0]-2, decoy2[1]+0.5, 'New decoy', fontsize=10)
+        t3 = label(decoy[0]+2, decoy[1], 'Initial decoy', fontsize=10)
+        t4 = label(decoy2[0]-2, decoy2[1], 'New decoy', fontsize=10)
         plt.axis('off')
         # plt.legend(loc='upper left')
         adjustText.adjust_text([t1, t2, t3, t4])
@@ -304,49 +334,128 @@ def main():
         plt.title(f"{deception_type.capitalize()}: Visibility radius")
         make_base_plot(trees, start, goal, decoy, decoy2, voronoi, plot_voronoi=False)
 
-        min_ = 1.5
-        max_ = 4.5
+        min_ = 2
+        max_ = 6
         samples = 4
+        remaining_time = 30
         for i, visibility_radius in enumerate(tqdm.tqdm(np.exp(np.linspace(np.log(min_), np.log(max_), samples)))):
-            path, switch_time = get_path(
-                model,
-                start_node,
-                node_locations,
-                edge_list,
-                20,
-                visibility_radius,
-                goal,
-                decoy,
-                decoy2,
-                decoy2_switch_time=decoy2_switch_time
-            )
+            for trial_num in range(n_trials):
+                path, switch_time = get_path(
+                    model,
+                    start_node,
+                    node_locations,
+                    edge_list,
+                    remaining_time,
+                    visibility_radius,
+                    goal,
+                    decoy,
+                    decoy2=None,
+                    decoy2_switch_time=None,
+                    greedy=greedy,
+                )
 
-            # plot path
-            x = [node_locations[i][0] for i in path]
-            y = [node_locations[i][1] for i in path]
-            # add label to middle of path
-            t = plt.text(x[len(x)//2], y[len(y)//2], f'{visibility_radius:.2f}', fontsize=fontsize, color=labelcolors[i])
-            texts.append(t)
-            t.set_bbox({
-                "facecolor": colors[i],
-                "alpha": labelalpha,
-                "edgecolor": colors[i]
-            })
+                # plot path
+                x = [node_locations[l][0] for l in path]
+                y = [node_locations[i][1] for i in path]
+                # add label to middle of path
+                if trial_num == 0:
+                    t = plt.text(x[len(x)//2], y[len(y)//2], f'{visibility_radius:.2f}', fontsize=fontsize, color=labelcolors[i])
+                    texts.append(t)
+                    t.set_bbox({
+                        "facecolor": colors[i],
+                        "alpha": labelalpha,
+                        "edgecolor": colors[i]
+                    })
             
-            plt.plot(*spline(x,y),c=colors[i])
+                plt.plot(*spline(x,y),c=colors[i])
 
         label(start[0]-2.5, start[1], 'Start',fontsize=10)
-        label(goal[0]-2.5, goal[1], 'Goal',fontsize=10)
-        label(decoy[0]+1, decoy[1], 'Decoy',fontsize=10)
+        label(goal[0]-2.5, goal[1], 'Goal', fontsize=10)
+        label(decoy[0]+1, decoy[1], 'Decoy', fontsize=10)
+        # label(decoy2[0]+1, decoy2[1], 'Decoy 2', fontsize=10)
         plt.axis('off')
         adjustText.adjust_text(texts)
         no_margins()
         # plt.savefig(f'figures/forest_{deception_type}_changing_visibility.png', pad_inches=0)
         plt.show()
 
+    elif mode == 'compare-remaining-time':
+        plt.title(f"{deception_type.capitalize()}: Time Constraint")
+        make_base_plot(trees, start, goal, decoy, decoy2=None, vor=None, plot_voronoi=False)
+
+        # lists for plotting scatterplots
+        target_path_length = []
+        true_path_length = []
+
+        values = [15, 20, 25, 30]
+        visibility_radius = 2
+        for i, remaining_time in enumerate(tqdm.tqdm(values)):
+            # remaining_time += distance(start, decoy)
+            for trial_num in range(n_trials):
+                path, switch_time = get_path(
+                    model,
+                    start_node,
+                    node_locations,
+                    edge_list,
+                    remaining_time,
+                    visibility_radius,
+                    goal,
+                    decoy,
+                    decoy2=None,
+                    decoy2_switch_time=None,
+                    greedy=greedy,
+                )
+
+                # plot path
+                x = [node_locations[l][0] for l in path]
+                y = [node_locations[i][1] for i in path]
+
+                # get path length
+                path_length = 0
+                for k in range(len(x)-1):
+                    path_length += ((x[k] - x[k+1])**2 + (y[k] - y[k+1])**2)**0.5
+                target_path_length.append(remaining_time)
+                true_path_length.append(path_length)
+
+                # add label to middle of path
+                if trial_num == 0:
+                    t = plt.text(x[len(x)//2], y[len(y)//2], f'{remaining_time:.2f}', fontsize=fontsize, color=labelcolors[i])
+                    texts.append(t)
+                    t.set_bbox({
+                        "facecolor": colors[i],
+                        "alpha": labelalpha,
+                        "edgecolor": colors[i]
+                    })
+            
+                plt.plot(*spline(x,y),c=colors[i],alpha=0.75)
+
+        label(start[0]-2.5, start[1], 'Start', fontsize=10)
+        label(goal[0]-2.5, goal[1], 'Goal', fontsize=10)
+        label(decoy[0]+1, decoy[1], 'Decoy', fontsize=10)
+        # label(decoy2[0]+1, decoy2[1], 'Decoy 2', fontsize=10)
+        plt.axis('off')
+        adjustText.adjust_text(texts)
+        no_margins()
+        # plt.savefig(f'figures/forest_{deception_type}_changing_visibility.png', pad_inches=0)
+        plt.show()
+
+        # plot scatterplot
+        # use pointplot to aggregate values across trials
+        import seaborn as sns
+
+        sns.set_theme(style="whitegrid")
+        sns.pointplot(x=target_path_length, y=true_path_length, join=False, errorbar='sd')
+        plt.xlabel('Target Path Length')
+        plt.ylabel('True Path Length')
+        plt.title(f'{deception_type.capitalize()}: Path Lengths')
+        plt.show()
+
     elif mode == 'animate':
         extra_time = 25
-        visibility_radius = 4
+        visibility_radius = 2
+        # Don't show second decoy here
+        decoy2 = None
+        decoy2_switch_time = None
         render_animation(
             model,
             start_node,
@@ -356,11 +465,11 @@ def main():
             decoy2_switch_time,
             node_locations,
             edge_list,
-            deception_type,
             extra_time,
             visibility_radius,
             trees,
-            voronoi
+            voronoi,
+            greedy=True,
         )
 
     else:
