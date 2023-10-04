@@ -1,7 +1,5 @@
 # Reinforcement Learning with Graph Neural Networks Enables Zero-Shot Deceptive Path Planning Over Arbitrary Graphs
 
-Michael Y. Fatemi, Wesley A. Suttle, and Brian M. Sadler
-
 August 2023
 
 This repository holds the code for our paper, "Reinforcement Learning with Graph Neural Networks Enables Zero-Shot Deceptive Path Planning Over Arbitrary Graphs", which we are submitting to AAMAS 2024.
