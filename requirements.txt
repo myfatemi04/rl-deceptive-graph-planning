@@ -9,3 +9,5 @@ gymnasium
 torch-geometric
 scipy
 adjustText
+torch
+tensorboard
